@@ -3,6 +3,7 @@ import '../models/user_model.dart';
 import '../core/services/auth_service.dart';
 import '../core/app_state.dart';
 import '../models/user_role.dart';
+import '../core/api/api_service.dart';
 
 class AuthProvider extends ChangeNotifier {
   final AuthService _authService = AuthService();
@@ -25,18 +26,33 @@ class AuthProvider extends ChangeNotifier {
         UserRole mappedRole;
         final String roleStr = response.role?.toUpperCase() ?? 'EMPLOYEE';
         
-        if (roleStr == 'ADMIN') {
-          mappedRole = UserRole.admin;
-        } else {
-          mappedRole = UserRole.employee;
+        switch (roleStr) {
+          case 'ADMIN':
+            mappedRole = UserRole.admin;
+            break;
+          case 'HR':
+            mappedRole = UserRole.hr;
+            break;
+          case 'MANAGER':
+            mappedRole = UserRole.manager;
+            break;
+          case 'EMPLOYEE':
+          default:
+            mappedRole = UserRole.employee;
+            break;
+        }
+
+        bool onboarded = true;
+        if (mappedRole == UserRole.employee) {
+          onboarded = await ApiService().getOnboardingStatus();
         }
 
         _currentUser = UserModel(
-          id: response.email ?? '',
+          id: response.email ?? email,
           name: response.email?.split('@').first ?? 'User',
           email: response.email ?? email,
-          role: mappedRole.name,
-          onboardingCompleted: true, // Assuming true as it's not in the new API spec
+          role: mappedRole,
+          onboardingCompleted: onboarded,
         );
 
         appState.currentUser = User(
@@ -45,8 +61,8 @@ class AuthProvider extends ChangeNotifier {
           email: _currentUser!.email,
           password: '',
           role: mappedRole,
-          isFirstLogin: false,
-          onboardingCompleted: true,
+          isFirstLogin: !onboarded,
+          onboardingCompleted: onboarded,
         );
 
         _isLoading = false;
@@ -71,8 +87,10 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setOnboardingCompleted() {
+  Future<void> setOnboardingCompleted() async {
     if (_currentUser != null) {
+      await ApiService().completeOnboarding();
+      
       _currentUser = UserModel(
         id: _currentUser!.id,
         name: _currentUser!.name,

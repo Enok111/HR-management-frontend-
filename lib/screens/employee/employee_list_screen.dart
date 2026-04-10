@@ -29,93 +29,119 @@ class _EmployeeListState extends State<EmployeeList> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text('Employees', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-              Row(
-                children: [
-                  IconButton(onPressed: _refresh, icon: const Icon(Icons.refresh)),
-                  ElevatedButton.icon(
-                    onPressed: () async {
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const AddEmployee()),
-                      );
-                      _refresh();
-                    },
-                    icon: const Icon(Icons.add),
-                    label: const Text('Add Employee'),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text('Workforce Intelligence', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900)),
+            Row(
+              children: [
+                IconButton(onPressed: _refresh, icon: const Icon(Icons.sync, size: 20)),
+                const SizedBox(width: 8),
+                ElevatedButton.icon(
+                  onPressed: () async {
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const AddEmployee()),
+                    );
+                    _refresh();
+                  },
+                  icon: const Icon(Icons.person_add_outlined, size: 16),
+                  label: const Text('Add Personnel'),
+                ),
+              ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 32),
+        Expanded(
+          child: FutureBuilder<List<Employee>>(
+            future: _employeesFuture,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator(color: primaryColor));
+              } else if (snapshot.hasError) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.wifi_off_outlined, size: 48, color: dangerColor),
+                      const SizedBox(height: 16),
+                      Text('System link failed: ${snapshot.error}', style: const TextStyle(color: textSecondary)),
+                      const SizedBox(height: 16),
+                      TextButton(onPressed: _refresh, child: const Text('Retry Connection')),
+                    ],
                   ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          Expanded(
-            child: FutureBuilder<List<Employee>>(
-              future: _employeesFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.error_outline, size: 48, color: Colors.red),
-                        const SizedBox(height: 16),
-                        Text('Error: ${snapshot.error}'),
-                        const SizedBox(height: 16),
-                        ElevatedButton(onPressed: _refresh, child: const Text('Retry')),
-                      ],
+                );
+              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return const Center(child: Text('No personnel data found in nodes.', style: TextStyle(color: textSecondary)));
+              }
+
+              final employees = snapshot.data!;
+              return ListView.builder(
+                itemCount: employees.length,
+                itemBuilder: (context, index) {
+                  final emp = employees[index];
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: ModernCard(
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 22,
+                            backgroundColor: primaryColor.withValues(alpha: 0.1),
+                            child: Text(emp.name[0].toUpperCase(), style: const TextStyle(color: primaryColor, fontWeight: FontWeight.bold)),
+                          ),
+                          const SizedBox(width: 20),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(emp.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                                const SizedBox(height: 2),
+                                Text('${emp.department} • ${emp.email}', style: const TextStyle(color: textSecondary, fontSize: 12)),
+                              ],
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.settings_outlined, color: textSecondary, size: 20),
+                            onPressed: () {},
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete_outline, color: dangerColor, size: 20),
+                            onPressed: () async {
+                              final confirm = await showDialog<bool>(
+                                context: context,
+                                builder: (ctx) => AlertDialog(
+                                  backgroundColor: surfaceColor,
+                                  title: const Text('Confirm Deletion'),
+                                  content: const Text('Are you sure you want to remove this node from the workforce?'),
+                                  actions: [
+                                    TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+                                    TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Remove', style: TextStyle(color: dangerColor))),
+                                  ],
+                                ),
+                              );
+                              if (confirm == true && emp.id != null) {
+                                await _apiService.deleteEmployee(emp.id!);
+                                _refresh();
+                              }
+                            },
+                          ),
+                        ],
+                      ),
                     ),
                   );
-                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text('No employees found'));
-                }
-
-                final employees = snapshot.data!;
-                return ListView.builder(
-                  itemCount: employees.length,
-                  itemBuilder: (context, index) {
-                    final emp = employees[index];
-                    return Card(
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: primaryColor.withValues(alpha: 0.1),
-                          child: Text(emp.name[0].toUpperCase(), style: TextStyle(color: primaryColor)),
-                        ),
-                        title: Text(emp.name),
-                        subtitle: Text('${emp.email} • ${emp.department}'),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.delete, color: dangerColor),
-                              onPressed: () async {
-                                if (emp.id != null) {
-                                  await _apiService.deleteEmployee(emp.id!);
-                                  _refresh();
-                                }
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
+                },
+              );
+            },
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
+

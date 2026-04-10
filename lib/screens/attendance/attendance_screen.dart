@@ -10,7 +10,6 @@ class AttendancePage extends StatefulWidget {
 }
 
 class _AttendancePageState extends State<AttendancePage> {
-
   @override
   Widget build(BuildContext context) {
     final user = appState.currentUser!;
@@ -21,88 +20,102 @@ class _AttendancePageState extends State<AttendancePage> {
       builder: (context, _) {
         final todayAttendance = appState.attendance[user.id]?[today];
         
-        return Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('Attendance', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 24),
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Operational Logs', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900)),
+            const SizedBox(height: 32),
+            ModernCard(
+              child: Column(
+                children: [
+                  const Text('Current Session Progress', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 32),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      const Text('Today\'s Attendance', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 16),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          _AttendanceStatus(
-                            label: 'Check In',
-                            time: todayAttendance?['checkIn'],
-                            isDone: todayAttendance?['checkIn'] != null,
-                          ),
-                          _AttendanceStatus(
-                            label: 'Check Out',
-                            time: todayAttendance?['checkOut'],
-                            isDone: todayAttendance?['checkOut'] != null,
-                          ),
-                        ],
+                      _AttendanceStatus(
+                        label: 'INITIALIZE',
+                        time: todayAttendance?['checkIn'],
+                        isDone: todayAttendance?['checkIn'] != null,
                       ),
-                      const SizedBox(height: 24),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: ElevatedButton.icon(
-                              onPressed: !appState.isClockedIn && todayAttendance?['checkIn'] == null ? appState.checkIn : null,
-                              icon: const Icon(Icons.login),
-                              label: const Text('Check In'),
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: ElevatedButton.icon(
-                              onPressed: appState.isClockedIn ? appState.checkOut : null,
-                              icon: const Icon(Icons.logout),
-                              label: const Text('Check Out'),
-                              style: ElevatedButton.styleFrom(backgroundColor: dangerColor),
-                            ),
-                          ),
-                        ],
+                      _AttendanceStatus(
+                        label: 'TERMINATE',
+                        time: todayAttendance?['checkOut'],
+                        isDone: todayAttendance?['checkOut'] != null,
                       ),
                     ],
                   ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              const Text('Recent Attendance', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 16),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: appState.attendance[user.id]?.length ?? 0,
-                  itemBuilder: (context, index) {
-                    final dates = appState.attendance[user.id]!.keys.toList().reversed.toList();
-                    final date = dates[index];
-                    final attendance = appState.attendance[user.id]![date]!;
-                    return Card(
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: primaryColor.withValues(alpha: 0.1),
-                          child: const Icon(Icons.calendar_today, color: primaryColor, size: 16),
-                        ),
-                        title: Text('Date: $date'),
-                        subtitle: Text(
-                          'Check In: ${attendance['checkIn'] != null ? DateTime.parse(attendance['checkIn']).toLocal().toString().split(' ')[1].substring(0, 5) : 'N/A'} | '
-                          'Check Out: ${attendance['checkOut'] != null ? DateTime.parse(attendance['checkOut']).toLocal().toString().split(' ')[1].substring(0, 5) : 'N/A'}',
+                  const SizedBox(height: 48),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: !appState.isClockedIn && todayAttendance?['checkIn'] == null ? appState.checkIn : null,
+                          icon: const Icon(Icons.hub_outlined, size: 18),
+                          label: const Text('Access Node'),
                         ),
                       ),
-                    );
-                  },
-                ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: appState.isClockedIn ? appState.checkOut : null,
+                          icon: const Icon(Icons.power_settings_new, size: 18),
+                          label: const Text('End Session'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: dangerColor,
+                            side: BorderSide(color: dangerColor.withValues(alpha: 0.2)),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 48),
+            const Text('Historical Ledger', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 24),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: appState.attendance[user.id]?.length ?? 0,
+              itemBuilder: (context, index) {
+                final dates = appState.attendance[user.id]!.keys.toList().reversed.toList();
+                final date = dates[index];
+                final attendance = appState.attendance[user.id]![date]!;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: ModernCard(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(color: primaryColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+                          child: const Icon(Icons.event_available, color: primaryColor, size: 18),
+                        ),
+                        const SizedBox(width: 20),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('STAMP: $date', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, letterSpacing: 0.5)),
+                              const SizedBox(height: 4),
+                              Text(
+                                'IO: ${attendance['checkIn'] != null ? DateTime.parse(attendance['checkIn']).toLocal().toString().substring(11, 16) : '--'} / ${attendance['checkOut'] != null ? DateTime.parse(attendance['checkOut']).toLocal().toString().substring(11, 16) : '--'}',
+                                style: const TextStyle(color: textSecondary, fontSize: 12, fontWeight: FontWeight.w600),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Icon(Icons.chevron_right, color: Colors.white10),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
         );
       },
     );
@@ -119,20 +132,34 @@ class _AttendanceStatus extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Icon(
-          isDone ? Icons.check_circle : Icons.radio_button_unchecked,
-          size: 48,
-          color: isDone ? successColor : textSecondary,
+        Container(
+          width: 64,
+          height: 64,
+          decoration: BoxDecoration(
+            color: isDone ? successColor.withValues(alpha: 0.05) : surfaceColor,
+            shape: BoxShape.circle,
+            border: Border.all(color: isDone ? successColor.withValues(alpha: 0.2) : Colors.white10, width: 2),
+            boxShadow: isDone ? [BoxShadow(color: successColor.withValues(alpha: 0.1), blurRadius: 20)] : null,
+          ),
+          child: Icon(
+            isDone ? Icons.verified_user_outlined : Icons.radio_button_off,
+            size: 24,
+            color: isDone ? successColor : textSecondary,
+          ),
         ),
-        const SizedBox(height: 8),
-        Text(label, style: const TextStyle(fontWeight: FontWeight.w500)),
+        const SizedBox(height: 16),
+        Text(label, style: const TextStyle(fontWeight: FontWeight.w900, color: textSecondary, fontSize: 10, letterSpacing: 1)),
+        const SizedBox(height: 4),
         if (time != null)
           Text(
-            DateTime.parse(time!).toLocal().toString().split(' ')[1].substring(0, 5),
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-          ),
+            DateTime.parse(time!).toLocal().toString().substring(11, 16),
+            style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18),
+          )
+        else
+          const Text('--:--', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: Colors.white12)),
       ],
     );
   }
 }
+
 

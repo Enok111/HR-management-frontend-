@@ -53,8 +53,18 @@ class ApiService {
   }
 
   Future<bool> uploadDocument(String docType, String filePath) async {
-    // In a real app, this would be a MultipartRequest, but using post for now
-    final response = await post("Onboarding/upload", {"type": docType, "path": filePath});
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString("jwt_token");
+
+    var request = http.MultipartRequest('POST', Uri.parse("$baseUrl/Onboarding/upload-document"));
+    if (token != null) {
+      request.headers["Authorization"] = "Bearer $token";
+    }
+    
+    request.fields['documentType'] = docType;
+    request.files.add(http.MultipartFile.fromString('file', 'mock content', filename: 'dummy.pdf'));
+
+    final response = await request.send();
     return response.statusCode == 200 || response.statusCode == 201;
   }
 
@@ -63,8 +73,86 @@ class ApiService {
     return response.statusCode == 200;
   }
 
+  Future<bool> getOnboardingStatus() async {
+    try {
+      final response = await get("Onboarding/status");
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data["status"] == "Completed";
+      }
+    } catch (_) {}
+    return false;
+  }
+
+  Future<Map<String, dynamic>?> getJobDetails() async {
+    final response = await get("Onboarding/job-details");
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    }
+    return null;
+  }
+
+  Future<bool> clockIn() async {
+    final response = await post("Attendance/clockin", {});
+    return response.statusCode == 200;
+  }
+
+  Future<bool> clockOut() async {
+    final response = await post("Attendance/clockout", {});
+    return response.statusCode == 200;
+  }
+
+  Future<List<dynamic>> getMyAttendance() async {
+    final response = await get("Attendance/myattendance");
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    }
+    return [];
+  }
+
+  Future<bool> submitLeave(Map<String, dynamic> request) async {
+    final response = await post("Leave/submit", request);
+    return response.statusCode == 200;
+  }
+
+  Future<List<dynamic>> getMyLeaves() async {
+    final response = await get("Leave/my-leaves");
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    }
+    return [];
+  }
+
+  Future<List<dynamic>> getAllAttendance() async {
+    final response = await get("Attendance/all");
+    if (response.statusCode == 200) return jsonDecode(response.body);
+    return [];
+  }
+
+  Future<List<dynamic>> getAllLeaves() async {
+    final response = await get("Leave/all");
+    if (response.statusCode == 200) return jsonDecode(response.body);
+    return [];
+  }
+
+  Future<bool> actionLeave(int id, String status) async {
+    final response = await put("Leave/action/$id?status=$status", {});
+    return response.statusCode == 200;
+  }
+
+  Future<List<dynamic>> getEmployees() async {
+    final response = await get("Employee");
+    if (response.statusCode == 200) return jsonDecode(response.body);
+    return [];
+  }
+
   Future<bool> completeOrientation() async {
-    final response = await post("Onboarding/complete-orientation", {});
+    final response = await post("Onboarding/orientation/complete", {});
+    return response.statusCode == 200;
+  }
+
+  Future<bool> completeOnboarding() async {
+    final response = await post("Onboarding/complete", {});
     return response.statusCode == 200;
   }
 

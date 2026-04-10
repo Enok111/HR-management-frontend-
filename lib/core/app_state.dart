@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/user_role.dart';
+import 'api/api_service.dart';
 
 class User {
   String id;
@@ -37,7 +38,7 @@ class AppState extends ChangeNotifier {
   static final AppState _instance = AppState._internal();
   factory AppState() => _instance;
   AppState._internal() {
-    _initializeUsers();
+    // Initialized with empty state, data will be fetched via services
   }
 
   User? currentUser;
@@ -47,61 +48,7 @@ class AppState extends ChangeNotifier {
   List<Map<String, dynamic>> auditLogs = [];
   Map<String, Map<String, dynamic>> attendance = {}; // userId -> {date: {checkIn, checkOut}}
 
-  void _initializeUsers() {
-    users = [
-      User(
-        id: "E001",
-        name: "Employee One",
-        email: "employee@example.com",
-        password: "pass123",
-        role: UserRole.employee,
-        isFirstLogin: false,
-        onboardingCompleted: true,
-      ),
-      User(
-        id: "H001",
-        name: "HR One",
-        email: "hr@example.com",
-        password: "pass123",
-        role: UserRole.hr,
-        isFirstLogin: false,
-        onboardingCompleted: true,
-      ),
-      User(
-        id: "M001",
-        name: "Manager One",
-        email: "manager@example.com",
-        password: "pass123",
-        role: UserRole.manager,
-        isFirstLogin: false,
-        onboardingCompleted: true,
-      ),
-      User(
-        id: "E002",
-        name: "New Employee",
-        email: "new@example.com",
-        password: "pass123",
-        role: UserRole.employee,
-        isFirstLogin: true,
-        onboardingCompleted: false,
-      ),
-    ];
-  }
-
   List<User> get employees => users.where((u) => u.role == UserRole.employee).toList();
-
-  bool login(String email, String password) {
-    final user = users.firstWhere(
-      (u) => u.email == email && u.password == password,
-      orElse: () => User(id: '', name: '', email: '', password: '', role: UserRole.employee),
-    );
-    if (user.id.isNotEmpty) {
-      currentUser = user;
-      notifyListeners();
-      return true;
-    }
-    return false;
-  }
 
   void logout() {
     currentUser = null;
@@ -148,47 +95,105 @@ class AppState extends ChangeNotifier {
 
   bool _isClockedIn = false;
   bool get isClockedIn => _isClockedIn;
+  bool _isInitialDataFetched = false;
+
+  Future<void> fetchInitialData() async {
+    if (_isInitialDataFetched) return;
+    
+    if (currentUser?.role == UserRole.employee) {
+      final myAttendance = await ApiService().getMyAttendance();
+      if (myAttendance.isNotEmpty) {
+        final lastRecord = myAttendance.last;
+        _isClockedIn = lastRecord['clockOutTime'] == null;
+        
+        attendance[currentUser!.id] = {};
+        for (var record in myAttendance) {
+          final String date = record['date'].toString().split('T')[0];
+          attendance[currentUser!.id]![date] = {
+             'checkIn': record['clockInTime'],
+             'checkOut': record['clockOutTime']
+          };
+        }
+      }
+      
+      final leaves = await ApiService().getMyLeaves();
+      leaveRequests = leaves.map((apiLeave) => {
+        'userId': currentUser!.id,
+        'type': apiLeave['leaveType'],
+        'startDate': apiLeave['startDate']?.toString().split('T')[0],
+        'endDate': apiLeave['endDate']?.toString().split('T')[0],
+        'reason': apiLeave['reason'],
+        'status': apiLeave['status'] ?? 'Pending',
+      }).toList();
+      
+    } else if (currentUser != null) {
+      final allLeaves = await ApiService().getAllLeaves();
+      leaveRequests = allLeaves.map((apiLeave) => {
+        'id': apiLeave['id'],
+        'userId': apiLeave['employeeId'].toString(),
+        'type': apiLeave['leaveType'],
+        'startDate': apiLeave['startDate']?.toString().split('T')[0],
+        'endDate': apiLeave['endDate']?.toString().split('T')[0],
+        'reason': apiLeave['reason'],
+        'status': apiLeave['status'] ?? 'Pending',
+      }).toList();
+
+      final emps = await ApiService().getEmployees();
+      users = emps.map((e) => User(
+        id: e['id']?.toString() ?? '',
+        name: e['firstName'] != null && e['lastName'] != null ? '${e['firstName']} ${e['lastName']}' : (e['username'] ?? 'Employee'),
+        email: e['email'] ?? '',
+        password: '',
+        role: UserRole.employee, // Admins manage employees
+      )).toList();
+    }
+    
+    _isInitialDataFetched = true;
+    notifyListeners();
+  }
 
   void checkIn() async {
     if (currentUser != null) {
-      // Simulate API call: /api/attendance/clockin
-      final today = DateTime.now().toIso8601String().split('T')[0];
-      attendance[currentUser!.id] ??= {};
-      attendance[currentUser!.id]![today] = {'checkIn': DateTime.now().toIso8601String()};
-      _isClockedIn = true;
-      
-      // Admin notification
-      addNotification("${currentUser!.name} has clocked in.", true);
-      
-      notifyListeners();
+      final success = await ApiService().clockIn();
+      if (success) {
+        _isInitialDataFetched = false;
+        await fetchInitialData();
+        addNotification("${currentUser!.name} has clocked in.", true);
+      }
     }
   }
 
   void checkOut() async {
     if (currentUser != null) {
-      // Simulate API call: /api/attendance/clockout
-      final today = DateTime.now().toIso8601String().split('T')[0];
-      if (attendance[currentUser!.id]?[today] != null) {
-        attendance[currentUser!.id]![today]['checkOut'] = DateTime.now().toIso8601String();
-        _isClockedIn = false;
-        notifyListeners();
+      final success = await ApiService().clockOut();
+      if (success) {
+        _isInitialDataFetched = false;
+        await fetchInitialData();
       }
     }
   }
 
   void requestLeave(String type, String startDate, String endDate, String reason) async {
-    // Simulate API call: /api/leave/request
-    leaveRequests.add({
-      'userId': currentUser!.id,
-      'type': type,
-      'startDate': startDate,
-      'endDate': endDate,
-      'reason': reason,
-      'status': 'Pending',
-      'requestedAt': DateTime.now().toIso8601String(),
+    final success = await ApiService().submitLeave({
+      "leaveType": type,
+      "startDate": startDate,
+      "endDate": endDate,
+      "reason": reason
     });
-    addNotification("Leave request submitted by ${currentUser!.name}.", true);
-    notifyListeners();
+    
+    if (success) {
+      leaveRequests.add({
+        'userId': currentUser!.id,
+        'type': type,
+        'startDate': startDate,
+        'endDate': endDate,
+        'reason': reason,
+        'status': 'Pending',
+        'requestedAt': DateTime.now().toIso8601String(),
+      });
+      addNotification("Leave request submitted by ${currentUser!.name}.", true);
+      notifyListeners();
+    }
   }
 
   void submitFeedback(String message) async {
@@ -198,12 +203,15 @@ class AppState extends ChangeNotifier {
   }
 
 
-  void updateLeaveStatus(int index, String newStatus) {
-    leaveRequests[index]["status"] = newStatus;
-    final userId = leaveRequests[index]['userId'];
-    final user = users.firstWhere((u) => u.id == userId);
-    addNotification("Your leave request was $newStatus.", user.role == UserRole.employee);
-    notifyListeners();
+  void updateLeaveStatus(int index, String newStatus) async {
+    final leaveId = leaveRequests[index]['id'];
+    if (leaveId != null) {
+      final success = await ApiService().actionLeave(leaveId, newStatus);
+      if (success) {
+        leaveRequests[index]["status"] = newStatus;
+        notifyListeners();
+      }
+    }
   }
 
   void addNotification(String msg, bool forAdmin) {

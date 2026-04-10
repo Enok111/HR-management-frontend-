@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:hr/models/user_role.dart';
 import 'package:provider/provider.dart';
 import 'package:hr/theme/app_theme.dart';
-import 'package:hr/screens/auth/login_screen.dart';
 import 'package:hr/screens/dashboard/dashboard_screen.dart';
 import 'package:hr/screens/onboarding/welcome_screen.dart';
 import 'package:hr/providers/auth_provider.dart';
+import 'package:hr/screens/landing_page.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -29,10 +30,10 @@ class HRAdminApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Modern HR System',
       theme: appTheme,
-
       home: Consumer<AuthProvider>(
+
         builder: (context, authProvider, _) {
-          // Loading state — API call நடக்கும் போது spinner காட்டு
+          // Loading state
           if (authProvider.isLoading) {
             return const Scaffold(
               body: Center(
@@ -41,22 +42,23 @@ class HRAdminApp extends StatelessWidget {
             );
           }
 
-          // Login ஆகவில்லை → LoginScreen
+          // Not Logged In -> Show Landing Page
           if (authProvider.currentUser == null) {
-            return const LoginScreen();
+            return const LandingPage();
           }
 
-          // Onboarding complete ஆகவில்லை → WelcomeScreen
+          // Onboarding check
           if (!authProvider.currentUser!.onboardingCompleted) {
             return const WelcomeScreen();
           }
 
-          if (authProvider.currentUser!.role == 'admin' || authProvider.currentUser!.role == 'hr') {
+          if (authProvider.currentUser!.role == UserRole.admin || authProvider.currentUser!.role == UserRole.hr || authProvider.currentUser!.role == UserRole.manager) {
             return const AdminDashboard();
           }
           return const EmployeeDashboard();
         },
       ),
+
     );
   }
 }

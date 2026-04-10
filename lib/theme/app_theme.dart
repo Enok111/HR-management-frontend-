@@ -1,124 +1,137 @@
 import 'package:flutter/material.dart';
 
-const Color primaryColor = Color(0xFFE26145); // Warm coral
-const Color secondaryColor = Color(0xFFF2A694); // Soft peach
-const Color tertiaryColor = Color(0xFFC4B2EE); // Soft purple
-const Color accentColor = Color(0xFF8ADAB1); // Soft green
-const Color bgColor = Color(0xFFFCF9F8); // Soft warm white background
-const Color cardColor = Colors.white;
-const Color textPrimary = Color(0xFF1E2022); // Dark slate/almost black
-const Color textSecondary = Color(0xFF8B929A); // Medium grey
-const Color successColor = Color(0xFF8ADAB1); // Light green
-const Color warningColor = Color(0xFFF0BD7E); // Warm yellow/orange
-const Color dangerColor = Color(0xFFD9534F); // Soft red
-const Color infoColor = Color(0xFF9DB2EA); // Soft blue
+const Color primaryColor = Color(0xFF00E676); // Vibrant Green accent
+const Color secondaryColor = Color(0xFF00B0FF); // Electric Blue accent
+const Color tertiaryColor = Color(0xFF7C4DFF); // Deep Purple
+const Color accentColor = Color(0xFF00E676);
+const Color bgColor = Color(0xFF0B1118); // Deep black-blue background
+const Color surfaceColor = Color(0xFF161E27); // Card/Surface background
+const Color textPrimary = Color(0xFFFFFFFF);
+const Color textSecondary = Color(0xFF94A3B8); // Muted slate text
+const Color successColor = Color(0xFF00C853);
+const Color warningColor = Color(0xFFFFAB00);
+const Color dangerColor = Color(0xFFFF1744);
+const Color infoColor = Color(0xFF2979FF);
 
 final ThemeData appTheme = ThemeData(
   scaffoldBackgroundColor: bgColor,
   primaryColor: primaryColor,
+  brightness: Brightness.dark,
   useMaterial3: true,
-  colorScheme: ColorScheme.fromSwatch().copyWith(
+  colorScheme: ColorScheme.dark(
     primary: primaryColor,
     secondary: secondaryColor,
     tertiary: tertiaryColor,
-    surface: cardColor,
+    surface: surfaceColor,
+    onSurface: textPrimary,
     error: dangerColor,
-    brightness: Brightness.light,
+    brightness: Brightness.dark,
   ),
   textTheme: const TextTheme(
-    displayLarge: TextStyle(color: textPrimary, fontWeight: FontWeight.bold, fontSize: 32),
-    displayMedium: TextStyle(color: textPrimary, fontWeight: FontWeight.bold, fontSize: 28),
+    displayLarge: TextStyle(color: textPrimary, fontWeight: FontWeight.bold, fontSize: 32, letterSpacing: -1),
+    displayMedium: TextStyle(color: textPrimary, fontWeight: FontWeight.bold, fontSize: 28, letterSpacing: -0.5),
     displaySmall: TextStyle(color: textPrimary, fontWeight: FontWeight.bold, fontSize: 24),
     headlineMedium: TextStyle(color: textPrimary, fontWeight: FontWeight.bold, fontSize: 20),
     headlineSmall: TextStyle(color: textPrimary, fontWeight: FontWeight.bold, fontSize: 16),
     bodyLarge: TextStyle(color: textPrimary, fontSize: 16),
     bodyMedium: TextStyle(color: textSecondary, fontSize: 14),
-    labelSmall: TextStyle(color: textSecondary, fontSize: 12),
+    labelSmall: TextStyle(color: textSecondary, fontSize: 11, letterSpacing: 0.5),
   ),
   appBarTheme: const AppBarTheme(
-    backgroundColor: primaryColor,
+    backgroundColor: bgColor,
     elevation: 0,
     centerTitle: false,
-    toolbarTextStyle: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
-    titleTextStyle: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
-    iconTheme: IconThemeData(color: Colors.white),
+    toolbarTextStyle: TextStyle(color: textPrimary, fontWeight: FontWeight.bold, fontSize: 20),
+    titleTextStyle: TextStyle(color: textPrimary, fontWeight: FontWeight.bold, fontSize: 20),
+    iconTheme: IconThemeData(color: textPrimary),
   ),
   elevatedButtonTheme: ElevatedButtonThemeData(
     style: ElevatedButton.styleFrom(
       backgroundColor: primaryColor,
-      foregroundColor: Colors.white,
+      foregroundColor: bgColor,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
-      elevation: 4,
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
+      elevation: 0,
+      textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
     ),
   ),
   outlinedButtonTheme: OutlinedButtonThemeData(
     style: OutlinedButton.styleFrom(
-      foregroundColor: primaryColor,
-      side: const BorderSide(color: primaryColor, width: 2),
+      foregroundColor: textPrimary,
+      side: BorderSide(color: textPrimary.withValues(alpha: 0.1), width: 1),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
     ),
   ),
   inputDecorationTheme: InputDecorationTheme(
     filled: true,
-    fillColor: Colors.white,
+    fillColor: surfaceColor,
     prefixIconColor: WidgetStateColor.resolveWith(
+      (states) => states.contains(WidgetState.focused) ? primaryColor : textSecondary,
+    ),
+    suffixIconColor: WidgetStateColor.resolveWith(
       (states) => states.contains(WidgetState.focused) ? primaryColor : textSecondary,
     ),
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+      borderSide: BorderSide.none,
     ),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+      borderSide: BorderSide.none,
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: primaryColor, width: 2),
+      borderSide: const BorderSide(color: primaryColor, width: 1.5),
     ),
     errorBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
       borderSide: const BorderSide(color: dangerColor),
     ),
-    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+    contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
     labelStyle: const TextStyle(color: textSecondary),
+    hintStyle: const TextStyle(color: Color(0xFF4B5563)),
   ),
-  tabBarTheme: const TabBarThemeData(
-    labelColor: primaryColor,
-    unselectedLabelColor: textSecondary,
-    labelStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-    unselectedLabelStyle: TextStyle(fontSize: 14),
-    indicator: UnderlineTabIndicator(
-      borderSide: BorderSide(color: primaryColor, width: 3),
-    ),
+  cardTheme: CardThemeData(
+    color: surfaceColor,
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    elevation: 0,
   ),
-  chipTheme: ChipThemeData(
-    backgroundColor: primaryColor.withValues(alpha: 0.1),
-    labelStyle: const TextStyle(color: primaryColor, fontWeight: FontWeight.bold),
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+
+
+  dividerTheme: DividerThemeData(
+    color: Colors.white.withValues(alpha: 0.05),
+    thickness: 1,
   ),
 );
 
+// Unified Modern Card Widget with Sleek Borders and Shadows
 class ModernCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry? padding;
+  final List<Color>? gradient;
 
-  const ModernCard({super.key, required this.child, this.padding});
+  const ModernCard({super.key, required this.child, this.padding, this.gradient});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: padding ?? const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: surfaceColor,
+        gradient: gradient != null ? LinearGradient(colors: gradient!) : null,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.03)),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 20, offset: const Offset(0, 4)),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.2),
+            blurRadius: 30,
+            offset: const Offset(0, 10),
+          ),
         ],
       ),
       child: child,
     );
   }
 }
+

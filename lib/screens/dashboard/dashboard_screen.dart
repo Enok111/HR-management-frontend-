@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../core/app_state.dart';
 import '../../models/user_role.dart';
 import '../../theme/app_theme.dart';
-import '../../widgets/hr_pages.dart';
 import '../attendance/attendance_screen.dart';
 import '../leave/leave_screen.dart';
 import '../employee/employee_list_screen.dart';
@@ -11,7 +10,6 @@ import '../employee/add_employee_screen.dart';
 import '../payroll/payroll_screen.dart';
 import '../complaints/complaints_screen.dart';
 import '../auth/login_screen.dart';
-
 
 class AdminDashboard extends StatelessWidget {
   const AdminDashboard({super.key});
@@ -36,228 +34,110 @@ class Dashboard extends StatefulWidget {
 class _DashboardState extends State<Dashboard> {
   int _selectedIndex = 0;
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      appState.fetchInitialData();
+    });
+  }
+
   List<Map<String, dynamic>> get _navigationItems {
     switch (widget.role) {
       case UserRole.employee:
         return [
-          {
-            "title": "Home",
-            "icon": Icons.home,
-            "page": const HomeDashboardContent()
-          },
-          {
-            "title": "My Profile",
-            "icon": Icons.person,
-            "page": const ProfilePage()
-          },
-          {
-            "title": "Attendance",
-            "icon": Icons.access_time,
-            "page": const AttendancePage()
-          },
-          {
-            "title": "Apply Leave",
-            "icon": Icons.calendar_today,
-            "page": const LeavePage()
-          },
-          {
-            "title": "View Payroll",
-            "icon": Icons.monetization_on,
-            "page": const PayrollScreen()
-          },
-          {
-            "title": "Submit Complaints",
-            "icon": Icons.report_problem,
-            "page": const ComplaintsScreen()
-          },
+          {"title": "Intelligence", "icon": Icons.query_stats, "page": const HomeDashboardContent()},
+          {"title": "Profile", "icon": Icons.badge_outlined, "page": const ProfilePage()},
+          {"title": "Attendance", "icon": Icons.history_toggle_off, "page": const AttendancePage()},
+          {"title": "Absence", "icon": Icons.event_note, "page": const LeavePage()},
+          {"title": "Finance", "icon": Icons.payments_outlined, "page": const PayrollScreen()},
+          {"title": "Inquiries", "icon": Icons.support_agent, "page": const ComplaintsScreen()},
         ];
-      case UserRole.admin:
-      case UserRole.hr:
+      default:
         return [
-          {
-            "title": "Dashboard",
-            "icon": Icons.space_dashboard_rounded,
-            "page": const HomeDashboardContent()
-          },
-          {
-            "title": "Employee Management",
-            "icon": Icons.people,
-            "page": const EmployeeList()
-          },
-          {
-            "title": "Onboarding",
-            "icon": Icons.person_add,
-            "page": const AddEmployee()
-          },
-          {
-            "title": "Attendance",
-            "icon": Icons.access_time,
-            "page": const AttendancePage()
-          },
-          {
-            "title": "Leave Approvals",
-            "icon": Icons.calendar_today,
-            "page": const LeavePage()
-          },
-          {
-            "title": "Payroll",
-            "icon": Icons.monetization_on,
-            "page": const PayrollScreen()
-          },
-          {
-            "title": "Reports",
-            "icon": Icons.bar_chart,
-            "page": const ReportsPage()
-          },
-          {
-            "title": "Complaints",
-            "icon": Icons.report_problem,
-            "page": const ComplaintsScreen()
-          },
-        ];
-      case UserRole.manager:
-        return [
-          {
-            "title": "Dashboard",
-            "icon": Icons.space_dashboard_rounded,
-            "page": const HomeDashboardContent()
-          },
-          {
-            "title": "Team Attendance",
-            "icon": Icons.access_time,
-            "page": const AttendancePage()
-          },
-          {
-            "title": "Leave Requests",
-            "icon": Icons.calendar_today,
-            "page": const LeavePage()
-          },
-          {
-            "title": "Reports",
-            "icon": Icons.bar_chart,
-            "page": const ReportsPage()
-          },
-          {
-            "title": "Payroll",
-            "icon": Icons.monetization_on,
-            "page": const PayrollScreen()
-          },
-          {
-            "title": "Complaints",
-            "icon": Icons.report_problem,
-            "page": const ComplaintsScreen()
-          },
-          {
-            "title": "Notifications",
-            "icon": Icons.notifications,
-            "page": const NotificationsPage()
-          },
+          {"title": "Intelligence", "icon": Icons.analytics_outlined, "page": const HomeDashboardContent()},
+          {"title": "Workforce", "icon": Icons.people_outline, "page": const EmployeeList()},
+          {"title": "Talent Acquisition", "icon": Icons.person_add_outlined, "page": const AddEmployee()},
+          {"title": "Ops Monitor", "icon": Icons.monitor_heart_outlined, "page": const AttendancePage()},
+          {"title": "Approvals", "icon": Icons.verified_outlined, "page": const LeavePage()},
+          {"title": "Treasury", "icon": Icons.account_balance_wallet_outlined, "page": const PayrollScreen()},
+          {"title": "Reporting", "icon": Icons.assessment_outlined, "page": const ReportsPage()},
+          {"title": "Support Desk", "icon": Icons.forum_outlined, "page": const ComplaintsScreen()},
         ];
     }
   }
 
-  void _onItemTapped(int index) {
-    setState(() => _selectedIndex = index);
-  }
-
-  Widget _buildNavigationItem(
-      Map<String, dynamic> item, int index, bool isSelected) {
-    return ListTile(
-      leading:
-          Icon(item['icon'], color: isSelected ? primaryColor : textSecondary),
-      title: Text(item['title'],
-          style: TextStyle(
-              color: isSelected ? primaryColor : textSecondary,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500)),
-      selected: isSelected,
-      selectedTileColor: primaryColor.withValues(alpha: 0.1),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      onTap: () {
-        _onItemTapped(index);
-        if (MediaQuery.of(context).size.width < 950) Navigator.pop(context);
-      },
-    );
-  }
-
   Widget _buildSideNav(List<Map<String, dynamic>> items, bool isExpanded) {
     return Container(
-      width: isExpanded ? 240 : null,
+      width: isExpanded ? 280 : null,
       decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(
-            right: BorderSide(
-                color: Colors.black.withValues(alpha: 0.05), width: 1)),
+        color: surfaceColor,
+        border: Border(right: BorderSide(color: Colors.white.withValues(alpha: 0.03))),
       ),
       child: SafeArea(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            const SizedBox(height: 32),
             Padding(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Row(
                 children: [
-                  const CircleAvatar(
-                      radius: 20,
-                      backgroundColor: secondaryColor,
-                      child: Icon(Icons.person, color: Colors.white)),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(appState.currentUser!.name,
-                            style: const TextStyle(
-                                color: textPrimary,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 4),
-                        InkWell(
-                          onTap: () {
-                            showDialog(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                title: const Text('Edit Profile'),
-                                content: const Text('Profile editing form will load from backend API.'),
-                                actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close'))],
-                              ),
-                            );
-                          },
-                          child: const Text('Edit Profile',
-                              style: TextStyle(
-                                  color: textSecondary, fontSize: 12, decoration: TextDecoration.underline)),
-                        ),
-                      ],
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: primaryColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
                     ),
+                    child: const Icon(Icons.hub_outlined, color: primaryColor, size: 24),
                   ),
+                  const SizedBox(width: 16),
+                  if (isExpanded)
+                    const Text('ANTIGRAVITY',
+                        style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 3, fontSize: 16)),
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 48),
             Expanded(
               child: ListView.builder(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 itemCount: items.length,
                 itemBuilder: (context, index) {
+                  final isSelected = index == _selectedIndex;
                   return Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: _buildNavigationItem(
-                        items[index], index, index == _selectedIndex),
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: ListTile(
+                      onTap: () {
+                        setState(() => _selectedIndex = index);
+                        if (!isExpanded) Navigator.pop(context);
+                      },
+                      leading: Icon(items[index]['icon'],
+                          color: isSelected ? primaryColor : textSecondary, size: 22),
+                      title: isExpanded
+                          ? Text(items[index]['title'],
+                              style: TextStyle(
+                                  color: isSelected ? textPrimary : textSecondary,
+                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                  fontSize: 14))
+                          : null,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      selected: isSelected,
+                      selectedTileColor: primaryColor.withValues(alpha: 0.05),
+                    ),
                   );
                 },
               ),
             ),
-            const Divider(color: Colors.black12, thickness: 1),
+            const Divider(),
             ListTile(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-              leading: const Icon(Icons.logout, color: textSecondary),
-              title: const Text('Logout',
-                  style: TextStyle(
-                      color: textSecondary, fontWeight: FontWeight.w500)),
               onTap: () {
                 appState.logout();
-                Navigator.pushReplacement(context,
-                    MaterialPageRoute(builder: (_) => const LoginScreen()));
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
               },
+              leading: const Icon(Icons.power_settings_new, color: dangerColor, size: 22),
+              title: isExpanded
+                  ? const Text('Terminate Session', style: TextStyle(color: dangerColor, fontSize: 14))
+                  : null,
             ),
             const SizedBox(height: 16),
           ],
@@ -273,215 +153,202 @@ class _DashboardState extends State<Dashboard> {
     final bool isWide = MediaQuery.of(context).size.width > 950;
 
     return Scaffold(
-      drawer: isWide ? null : Drawer(child: _buildSideNav(items, false)),
-      body: SafeArea(
-        child: Row(
-          children: [
-            if (isWide) _buildSideNav(items, true),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+      drawer: isWide ? null : Drawer(child: _buildSideNav(items, true)),
+      body: Row(
+        children: [
+          if (isWide) _buildSideNav(items, true),
+          Expanded(
+            child: Column(
+              children: [
+                _Header(user: user, role: widget.role),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(32),
+                    child: items[_selectedIndex]['page'],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Header extends StatelessWidget {
+  final User user;
+  final UserRole role;
+  const _Header({required this.user, required this.role});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
+      color: bgColor,
+      child: Row(
+        children: [
+          if (MediaQuery.of(context).size.width <= 950)
+            IconButton(
+                onPressed: () => Scaffold.of(context).openDrawer(),
+                icon: const Icon(Icons.menu)),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Welcome back,', style: TextStyle(color: textSecondary, fontSize: 13)),
+              Text(user.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            ],
+          ),
+          const Spacer(),
+          if (role == UserRole.employee)
+            ListenableBuilder(
+              listenable: appState,
+              builder: (context, _) => Row(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 32, vertical: 24),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text('Hello, ${user.name}',
-                              style: const TextStyle(
-                                  color: textPrimary,
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold)),
-                        ),
-                        Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                                color: Colors.black.withValues(alpha: 0.05)),
-                          ),
-                          child: IconButton(
-                            icon: const Icon(Icons.wb_sunny_outlined, color: textPrimary, size: 20),
-                            onPressed: () {
-                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                                content: Text('Theme synchronized with backend preferences.'),
-                                behavior: SnackBarBehavior.floating,
-                              ));
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                                color: Colors.black.withValues(alpha: 0.05)),
-                          ),
-                          child: Stack(
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.notifications_none,
-                                    color: textPrimary, size: 20),
-                                onPressed: () {
-                                  showDialog(
-                                    context: context,
-                                    builder: (context) => AlertDialog(
-                                      title: const Text('Notifications'),
-                                      content: SizedBox(
-                                        width: 300,
-                                        height: 200,
-                                        child: appState.notifications.isEmpty
-                                            ? const Center(child: Text('No new notifications'))
-                                            : ListView.builder(
-                                                itemCount: appState.notifications.length,
-                                                itemBuilder: (ctx, i) => ListTile(
-                                                  leading: const Icon(Icons.info_outline, color: primaryColor),
-                                                  title: Text(appState.notifications[i]['msg']),
-                                                ),
-                                              ),
-                                      ),
-                                      actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close'))],
-                                    ),
-                                  );
-                                },
-                              ),
-                              if (appState.notifications.isNotEmpty)
-                                Positioned(
-                                  right: 10,
-                                  top: 10,
-                                  child: Container(
-                                    width: 8,
-                                    height: 8,
-                                    decoration: BoxDecoration(
-                                        color: dangerColor,
-                                        shape: BoxShape.circle),
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                        if (widget.role == UserRole.employee) ...[
-                          const SizedBox(width: 12),
-                          ListenableBuilder(
-                            listenable: appState,
-                            builder: (context, _) {
-                              return ElevatedButton.icon(
-                                onPressed: appState.isClockedIn ? appState.checkOut : appState.checkIn,
-                                icon: Icon(appState.isClockedIn ? Icons.logout : Icons.login, size: 16),
-                                label: Text(appState.isClockedIn ? 'Clocked In' : 'Clock In'),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: appState.isClockedIn ? successColor : primaryColor,
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                ),
-                              );
-                            },
-                          ),
-                        ],
-                        if (widget.role != UserRole.employee) ...[
-                          const SizedBox(width: 16),
-                          ElevatedButton.icon(
-                            onPressed: () async {
-                              showDialog(
-                                context: context,
-                                barrierDismissible: false,
-                                builder: (context) => const Center(child: CircularProgressIndicator(color: primaryColor)),
-                              );
-                              await Future.delayed(const Duration(milliseconds: 600)); // Simulate async backend connect
-                              if (context.mounted) Navigator.pop(context);
-                              
-                              if (context.mounted) {
-                                showDialog(
-                                  context: context,
-                                  builder: (context) => AlertDialog(
-                                    title: const Text('New Action'),
-                                    content: const Text('Action successfully triggered and logged in backend. UI update complete.'),
-                                    actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK'))],
-                                  ),
-                                );
-                              }
-                            },
-                            icon: const Icon(Icons.add, size: 16),
-                            label: const Text('New Action'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: primaryColor,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 20, vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8)),
-                              elevation: 0,
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
+                  _HeaderButton(
+                    onPressed: !appState.isClockedIn ? appState.checkIn : null,
+                    icon: Icons.login,
+                    label: appState.isClockedIn ? 'Synchronized' : 'Initialize Session',
+                    color: appState.isClockedIn ? successColor : primaryColor,
                   ),
-                  Expanded(
-                    child: Container(
-                      color: bgColor,
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (widget.role != UserRole.employee) ...[
-                            Wrap(
-                              runSpacing: 16,
-                              spacing: 16,
-                              children: [
-                                _MetricTile(
-                                    title: 'Total Employees',
-                                    value: '${appState.employees.length}',
-                                    icon: Icons.people,
-                                    shading: primaryColor),
-                                _MetricTile(
-                                    title: 'New Hires',
-                                    value: '4',
-                                    icon: Icons.person_add,
-                                    shading: secondaryColor),
-                                _MetricTile(
-                                    title: 'Average Tenure',
-                                    value: '2.3 yr',
-                                    icon: Icons.timeline,
-                                    shading: tertiaryColor),
-                                _MetricTile(
-                                    title: 'Probation',
-                                    value: '5',
-                                    icon: Icons.work_outline,
-                                    shading: warningColor),
-                              ],
-                            ),
-                            const SizedBox(height: 24),
-                          ],
-                          Expanded(child: items[_selectedIndex]['page']),
-                        ],
-                      ),
+                  if (appState.isClockedIn) ...[
+                    const SizedBox(width: 12),
+                    _HeaderButton(
+                      onPressed: appState.checkOut,
+                      icon: Icons.logout,
+                      label: 'Term Session',
+                      color: dangerColor,
                     ),
-                  ),
+                  ],
                 ],
               ),
             ),
+          const SizedBox(width: 24),
+          _NotificationBadge(),
+          const SizedBox(width: 16),
+          CircleAvatar(
+            radius: 18,
+            backgroundColor: surfaceColor,
+            child: const Icon(Icons.person_outline, size: 20, color: textSecondary),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HeaderButton extends StatelessWidget {
+  final VoidCallback? onPressed;
+  final IconData icon;
+  final String label;
+  final Color color;
+
+  const _HeaderButton({this.onPressed, required this.icon, required this.label, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon, size: 14),
+      label: Text(label, style: const TextStyle(fontSize: 12)),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: color.withValues(alpha: 0.1),
+        foregroundColor: color,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        side: BorderSide(color: color.withValues(alpha: 0.2)),
+      ),
+    );
+  }
+}
+
+class _NotificationBadge extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            backgroundColor: surfaceColor,
+            title: const Text('System Protocols', style: TextStyle(color: textPrimary)),
+            content: SizedBox(
+              width: 350,
+              child: appState.notifications.isEmpty
+                  ? const Text('No pending notifications', style: TextStyle(color: textSecondary))
+                  : ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: appState.notifications.length,
+                      itemBuilder: (ctx, i) => ListTile(
+                        leading: const Icon(Icons.info_outline, color: primaryColor),
+                        title: Text(appState.notifications[i]['msg'], style: const TextStyle(color: textPrimary, fontSize: 14)),
+                      ),
+                    ),
+            ),
+          ),
+        );
+      },
+      child: Stack(
+        children: [
+          const Icon(Icons.bolt_outlined, color: textSecondary),
+          if (appState.notifications.isNotEmpty)
+            Positioned(right: 0, top: 0, child: Container(width: 8, height: 8, decoration: const BoxDecoration(color: primaryColor, shape: BoxShape.circle))),
+        ],
+      ),
+    );
+  }
+}
+
+class HomeDashboardContent extends StatelessWidget {
+  const HomeDashboardContent({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text('Performance Intelligence', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, letterSpacing: -0.5)),
+            TextButton.icon(onPressed: () {}, icon: const Icon(Icons.filter_list, size: 16), label: const Text('Active Protocol')),
           ],
         ),
-      ),
-      bottomNavigationBar: isWide
-          ? null
-          : BottomNavigationBar(
-              items: items
-                  .map((item) => BottomNavigationBarItem(
-                        icon: Icon(item['icon']),
-                        label: item['title'],
-                      ))
-                  .toList(),
-              currentIndex: _selectedIndex,
-              onTap: _onItemTapped,
-              type: BottomNavigationBarType.fixed,
-              selectedItemColor: primaryColor,
-              unselectedItemColor: const Color.fromRGBO(139, 146, 154, 1),
-            ),
+        const SizedBox(height: 32),
+        Wrap(
+          runSpacing: 24,
+          spacing: 24,
+          children: [
+            _MetricTile(title: 'Workforce Index', value: '${appState.employees.length}', icon: Icons.group_outlined, color: primaryColor, trend: '+12.5%'),
+            _MetricTile(title: 'System Velocity', value: '48.4', icon: Icons.shutter_speed_outlined, color: secondaryColor, trend: '+4.2%'),
+            _MetricTile(title: 'Operational ROI', value: '94%', icon: Icons.pie_chart_outline, color: tertiaryColor, trend: '+0.8%'),
+            _MetricTile(title: 'Risk Profile', value: 'Minimal', icon: Icons.security_outlined, color: warningColor, trend: 'Stable'),
+          ],
+        ),
+        const SizedBox(height: 48),
+        ModernCard(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Trend Analysis', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 32),
+              Container(
+                height: 200,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [primaryColor.withValues(alpha: 0.1), Colors.transparent],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: const Center(child: Icon(Icons.auto_graph_outlined, size: 64, color: primaryColor)),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
@@ -490,63 +357,33 @@ class _MetricTile extends StatelessWidget {
   final String title;
   final String value;
   final IconData icon;
-  final Color shading;
+  final Color color;
+  final String trend;
 
-  const _MetricTile({
-    required this.title,
-    required this.value,
-    required this.icon,
-    required this.shading,
-  });
+  const _MetricTile({required this.title, required this.value, required this.icon, required this.color, required this.trend});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 250,
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        gradient: shading == primaryColor
-            ? LinearGradient(
-                colors: [Colors.white, secondaryColor.withValues(alpha: 0.2)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              )
-            : null,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: shading.withValues(alpha: 0.2), width: 1),
-        boxShadow: [
-          BoxShadow(
-              color: shading.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 4))
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(title,
-                  style: const TextStyle(
-                      fontSize: 14,
-                      color: textSecondary,
-                      fontWeight: FontWeight.w500)),
-              Icon(icon, color: shading, size: 20),
-            ],
-          ),
-          const SizedBox(height: 24),
-          Text(value,
-              style: const TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: textPrimary)),
-          const SizedBox(height: 24),
-          Text('View Details',
-              style: TextStyle(
-                  color: shading, fontWeight: FontWeight.w600, fontSize: 13)),
-        ],
+    return ModernCard(
+      padding: const EdgeInsets.all(24),
+      child: SizedBox(
+        width: 240,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Icon(icon, color: color, size: 20),
+                Text(trend, style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 12)),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Text(value, style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w900)),
+            const SizedBox(height: 4),
+            Text(title, style: const TextStyle(color: textSecondary, fontSize: 12, fontWeight: FontWeight.w500)),
+          ],
+        ),
       ),
     );
   }
@@ -558,140 +395,114 @@ class ProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final user = appState.currentUser!;
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('My Profile',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 32),
-          Center(
-            child: Column(
-              children: [
-                Stack(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Personnel Profile', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900)),
+        const SizedBox(height: 32),
+        ModernCard(
+          padding: const EdgeInsets.all(40),
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 50,
+                backgroundColor: primaryColor.withValues(alpha: 0.1),
+                child: const Icon(Icons.person_3_outlined, size: 50, color: primaryColor),
+              ),
+              const SizedBox(width: 32),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    CircleAvatar(
-                      radius: 60,
-                      backgroundColor: primaryColor.withValues(alpha: 0.1),
-                      child: const Icon(Icons.person, size: 60, color: primaryColor),
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(color: primaryColor, shape: BoxShape.circle),
-                        child: const Icon(Icons.edit, size: 20, color: Colors.white),
-                      ),
+                    Text(user.name, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(color: primaryColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(20)),
+                      child: Text(user.role.name.toUpperCase(), style: const TextStyle(color: primaryColor, fontWeight: FontWeight.bold, fontSize: 11, letterSpacing: 1.5)),
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
-                Text(user.name, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-                Text(user.role.name.toUpperCase(), style: const TextStyle(color: textSecondary, letterSpacing: 1.2)),
-              ],
-            ),
-          ),
-          const SizedBox(height: 48),
-          const Text('Personal Information', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 16),
-          _ProfileInfoCard(
-            items: [
-              _ProfileInfoItem(icon: Icons.email, label: 'Email Address', value: user.email),
-              _ProfileInfoItem(icon: Icons.phone, label: 'Phone Number', value: user.phone ?? 'Not set'),
-              _ProfileInfoItem(icon: Icons.location_on, label: 'Address', value: user.address ?? 'Not set'),
-              _ProfileInfoItem(icon: Icons.contact_emergency, label: 'Emergency Contact', value: user.emergencyContact ?? 'Not set'),
+              ),
+              OutlinedButton(onPressed: () {}, child: const Text('Modify Data')),
             ],
           ),
-          const SizedBox(height: 32),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: const Text('Edit Profile'),
-                    content: const Text('API Integration point: POST /api/profile/update'),
-                    actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close'))],
-                  ),
-                );
-              },
-              icon: const Icon(Icons.edit_note),
-              label: const Text('Edit Details'),
-              style: OutlinedButton.styleFrom(padding: const EdgeInsets.all(16)),
-            ),
+        ),
+        const SizedBox(height: 32),
+        ModernCard(
+          padding: const EdgeInsets.all(0),
+          child: Column(
+            children: [
+              _ProfileRow(label: 'Authentication Link', value: user.email, icon: Icons.alternate_email),
+              _ProfileRow(label: 'Communication Direct', value: user.phone ?? 'Undesignated', icon: Icons.phone_iphone),
+              _ProfileRow(label: 'Geo Coordinates', value: user.address ?? 'Undesignated', icon: Icons.map_outlined),
+            ],
           ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ProfileRow extends StatelessWidget {
+  final String label;
+  final String value;
+  final IconData icon;
+  const _ProfileRow({required this.label, required this.value, required this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Row(
+        children: [
+          Icon(icon, color: textSecondary, size: 18),
+          const SizedBox(width: 16),
+          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(label, style: const TextStyle(color: textSecondary, fontSize: 11)),
+            Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
+          ]),
         ],
       ),
     );
   }
 }
-
-class _ProfileInfoCard extends StatelessWidget {
-  final List<_ProfileInfoItem> items;
-  const _ProfileInfoCard({required this.items});
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: ListView.separated(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: items.length,
-        separatorBuilder: (context, index) => const Divider(height: 1),
-        itemBuilder: (context, index) => ListTile(
-          leading: Icon(items[index].icon, color: primaryColor, size: 20),
-          title: Text(items[index].label, style: const TextStyle(color: textSecondary, fontSize: 12)),
-          subtitle: Text(items[index].value, style: const TextStyle(color: textPrimary, fontSize: 16, fontWeight: FontWeight.bold)),
-        ),
-      ),
-    );
-  }
-}
-
-class _ProfileInfoItem {
-  final IconData icon;
-  final String label;
-  final String value;
-  _ProfileInfoItem({required this.icon, required this.label, required this.value});
-}
-
 
 class NotificationsPage extends StatelessWidget {
   const NotificationsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final notifications = appState.notifications;
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('Notifications',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 24),
-          Expanded(
-            child: notifications.isEmpty
-                ? const Center(child: Text('No notifications'))
-                : ListView.builder(
-                    itemCount: notifications.length,
-                    itemBuilder: (context, index) {
-                      final notif = notifications[index];
-                      return Card(
-                        child: ListTile(
-                          leading: const Icon(Icons.notifications),
-                          title: Text(notif['msg']),
-                          subtitle: Text(notif['time'].toString()),
-                        ),
-                      );
-                    },
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('System Logs', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900)),
+        const SizedBox(height: 32),
+        if (appState.notifications.isEmpty)
+          const Center(child: Padding(padding: EdgeInsets.all(100), child: Text('No active protocols found.', style: TextStyle(color: textSecondary))))
+        else
+          ListView.builder(
+            shrinkWrap: true,
+            itemCount: appState.notifications.length,
+            itemBuilder: (context, index) {
+              final notif = appState.notifications[index];
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: ModernCard(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.sensors_outlined, color: primaryColor),
+                      const SizedBox(width: 20),
+                      Expanded(child: Text(notif['msg'], style: const TextStyle(fontWeight: FontWeight.w500))),
+                      Text(notif['time'].toString().substring(11, 16), style: const TextStyle(color: textSecondary, fontSize: 12)),
+                    ],
                   ),
+                ),
+              );
+            },
           ),
-        ],
-      ),
+      ],
     );
   }
 }

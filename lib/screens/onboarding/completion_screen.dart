@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../models/user_role.dart';
 import '../dashboard/dashboard_screen.dart';
 
 class CompletionScreen extends StatelessWidget {
@@ -35,7 +36,7 @@ class CompletionScreen extends StatelessWidget {
                   context.read<AuthProvider>().setOnboardingCompleted();
 
                   final user = context.read<AuthProvider>().currentUser;
-                  final destination = (user?.role == 'admin' || user?.role == 'hr')
+                  final destination = (user?.role == UserRole.admin || user?.role == UserRole.hr)
                       ? const AdminDashboard()
                       : const EmployeeDashboard();
 

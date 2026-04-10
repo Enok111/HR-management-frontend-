@@ -23,11 +23,11 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
       final success = await _apiService.submitPersonalInfo({
-        'name': _nameController.text,
-        'dob': _dobController.text,
+        'fullName': _nameController.text,
+        'dateOfBirth': _dobController.text,
         'address': _addressController.text,
-        'phone': _phoneController.text,
-        'emergency': _emergencyController.text,
+        'phoneNumber': _phoneController.text,
+        'emergencyContact': _emergencyController.text,
       });
       setState(() => _isLoading = false);
 
